@@ -16,7 +16,9 @@ COPY "pyproject.toml" "uv.lock" ".python-version" ./
 RUN uv sync --locked
 
 # copy the script to the container. 1st name is source file, 2nd is destination
-COPY pipeline.py pipeline.py
+COPY nyc_taxi_load.py .
 
 # Set entry point
-ENTRYPOINT ["uv", "run", "python", "pipeline.py"]
+ENTRYPOINT ["uv", "run", "python", "nyc_taxi_load.py"]
+
+# Connect to PostgreSQL database: uv run pgcli -h localhost -p 5432 -u root -d ny_taxi
