@@ -16,6 +16,7 @@ This file is a comprehensive, runnable and workspace-tailored guide covering Doc
 9. Troubleshooting & common issues
 10. Cleanup and disk space recovery
 11. Credits & references
+12. Terraform: Concepts & Basics
 
 ---
 
@@ -251,25 +252,99 @@ docker volume prune
 
 ---
 
-If you want, I can also:
-- Add a `RUN.md` with short runnable command snippets in the root of `pipeline/` (recommended). ✅
-- Add CI checks that run the pipeline with a small sample dataset (quick smoke test). ✅
+## 12) Terraform: Concepts & Basics
 
----
+### Part 1: Conceptual Overview
+**1. What is Terraform?**
+- **Analogy**: Just as "terraforming" a planet means creating conditions suitable for life (atmosphere, water), HashiCorp’s Terraform prepares infrastructure (cloud or local) so software can live and run there.
+- **Definition**: It is an Infrastructure as Code (IaC) tool. It allows you to define resources in human-readable configuration files that can be versioned, reused, and shared.
+- **Workflow**: It uses a consistent workflow to provision and manage infrastructure throughout its lifecycle.
 
-*Updated to match your repository and script names.*
-- You can run the provided Docker Compose in `Week1_Docker_Terraform_SQL/pipeline/` (edit paths if needed) or run services directly with provided Docker commands.
+**2. Why use Terraform?**
+- **Simplicity**: You can track infrastructure definitions in a single file, easily viewing parameters like disk size or storage type.
+- **Collaboration**: Because infrastructure is code, it can be pushed to repositories (like GitHub) for review and collaboration before deployment.
+- **Reproducibility**: You can easily replicate environments (e.g., copying a Dev environment to Production) or share projects with friends.
+- **Resource Management**: It helps ensure resources are removed when no longer needed ("Terraform Destroy"), preventing accidental charges for unused infrastructure.
+
+**3. What Terraform is NOT:**
+- It does not manage or update code on the infrastructure (it is not a software deployment tool).
+- It cannot change "immutable" resources directly (e.g., changing a VM type requires destroying and recreating the VM).
+- It does not manage resources that were not defined in the Terraform files.
+
+**4. Architecture & Providers**
+- **Local Machine**: Terraform runs locally.
+- **Providers**: Terraform uses "Providers" (plugins) to communicate with specific platforms (e.g., AWS, GCP, Azure, Kubernetes). You define the provider in your file, and Terraform handles the API calls.
+- **Key Commands**:
+    - `terraform init`: Downloads the necessary provider code/plugins.
+    - `terraform plan`: Previews the resources that will be created or modified.
+    - `terraform apply`: Executes the plan and builds the infrastructure.
+    - `terraform destroy`: Removes all infrastructure defined in your files.
+
+### Part 2: Practical Implementation
+**1. Prerequisites & Security**
+- **Service Account**: You need a Service Account (a non-human account for software) to authenticate with GCP.
+- **Permissions (IAM)**: Assign specific roles to the Service Account based on what you need to build (e.g., Storage Admin for buckets, BigQuery Admin, Compute Admin).
+- **Keys**: Generate a JSON key for the Service Account to authenticate locally.
+    - **Security Warning**: Never commit these keys to GitHub. If exposed, attackers can spin up expensive resources (e.g., for Bitcoin mining). Always add key files to `.gitignore`.
+
+**2. Development Environment Setup**
+- **VS Code**: Recommended to install the HashiCorp Terraform extension for syntax highlighting and autocomplete.
+- **Main Configuration (`main.tf`)**:
+    - Define the provider block (e.g., `google`) with the project ID and region.
+    - **Authentication**: You can set the credential path via an environment variable (e.g., `export GOOGLE_APPLICATION_CREDENTIALS="path/to/key.json"`) to avoid hardcoding secrets in the file.
+
+**3. The Terraform Lifecycle (Demo)**
+- **Formatting**: Run `terraform fmt` to automatically format your code for readability.
+- **Initialization**: Run `terraform init` to download the Google provider and create the lock file (`.terraform.lock.hcl`).
+- **Defining Resources**:
+    - **Example**: Creating a Google Storage Bucket.
+    - **Syntax**: `resource "resource_type" "local_name" { ... }`.
+    - **Note**: The bucket name inside the block must be globally unique across all of GCP.
+    - **Lifecycle Rules**: You can define rules, such as deleting objects after 3 days or aborting incomplete multi-part uploads.
+- **Planning**: Run `terraform plan` to see what will happen. This helps verify defaults (e.g., storage class) and catch errors before billing starts.
+- **Applying**: Run `terraform apply`. This creates the resources and generates a `terraform.tfstate` file, which tracks the state of your infrastructure.
+- **Destroying**: Run `terraform destroy` to remove all resources managed by the state file.
+
+**4. Important Files**
+- `main.tf`: Your primary configuration file.
+- `terraform.tfstate`: Stores the mapping between your code and real-world resources (created after apply).
+- `.gitignore`: Critical for excluding sensitive files (keys) and system files (`.tfstate`, `.terraform` directory) from version control.
+
+### Part 3: Variables & Resource Expansion
+**1. Expanding Resources: Adding BigQuery**
+- **Documentation Strategy**: When adding new resources (like a BigQuery dataset), it is best to check the official Terraform documentation to distinguish between **required** fields (like `dataset_id`) and **optional** fields (like `location`, which defaults to "US" multi-region).
+- **Resource Configuration**:
+    - To create a dataset, you define a `resource "google_bigquery_dataset" "demo_dataset"` block.
+    - **Crucial Argument**: When working with datasets (or buckets), it is helpful to set `delete_contents_on_destroy = true`. Without this, `terraform destroy` will fail if the dataset contains tables, forcing manual deletion.
+
+**2. Implementing Variables**
+- **Purpose**: Hardcoding values (like project IDs or regions) makes code hard to share or reuse. Variables allow you to define values in one place and reference them throughout your configuration.
+- **The `variables.tf` File**: By convention, you create a separate file named `variables.tf` to declare your variables.
+- **Variable Syntax**:
+    - Variables are defined with a description and a default value.
+    - Example:
+        ```hcl
+        variable "location" {
+          description = "Project Location"
+          default     = "US"
+        }
+        ```
+    - You can create variables for anything, including bucket names, storage classes, and project IDs.
+- **Usage in `main.tf`**: Replace hardcoded strings with `var.variable_name`.
+    - Example: `location = var.location`.
+
+**3. Handling Credentials via Config**
+- **Alternative Authentication**: Instead of using the `GOOGLE_APPLICATION_CREDENTIALS` environment variable, you can define credentials directly in the `provider` block using a variable.
+- **The `file()` Function**:
+    - You can create a variable (e.g., `credentials`) that holds the *path* to your JSON key file.
+    - In the `provider "google"` block, you use the built-in `file()` function to load the key: `credentials = file(var.credentials)`.
+
+**4. State Management & Advanced Concepts**
+- **Backup State**: Terraform creates a `.backup` file alongside `terraform.tfstate`. If the state file is corrupted or fails to update during a destroy command, this backup can be used to restore the state so Terraform knows what to delete.
+- **Future Learning (`.tfvars`)**: While `variables.tf` sets defaults, you can use `.tfvars` files to pass different sets of variables at runtime (e.g., for different environments), though this is an advanced topic for later.
 
 ---
 
 ## Attribution & license ✍️
 - Content summarized from the DataTalksClub Data Engineering Zoomcamp materials: https://github.com/DataTalksClub/data-engineering-zoomcamp/tree/main/01-docker-terraform/docker-sql
 - This README is an original summary and includes links back to the original materials.
-
----
-
-If you want, I can:
-- Add detailed step-by-step run instructions tailored to your local setup (docker vs compose). ✅
-- Extract and include the `pipeline/` code examples directly into this README as short annotated snippets. ✅
-
-Would you like me to commit this README and push it to `origin/main`? (Yes/No)
