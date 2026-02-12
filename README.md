@@ -19,3 +19,17 @@ This repository contains my work and notes for the DataTalksClub Data Engineerin
 [View Week 1 Comprehensive Notes & Code](./Week1_Docker_Terraform_SQL/README.md)
 
 ---
+### [Week 2: Workflow Orchestration](./Week2_Workflow_Orchestration/README.md)
+**Focus**: Orchestrating data pipelines with **Kestra**, managing dependencies, and automating workflows.
+
+**Key Topics Covered**:
+- **Kestra Basics**: Flows, Tasks, Inputs/Outputs, and Docker deployment.
+- **ETL vs ELT**:
+    - **ETL**: Extracting to local Postgres, transforming with SQL.
+    - **ELT**: Loading to **GCS** and transforming in **BigQuery** for scale.
+- **Scheduling**: Cron-based triggers and managing **Backfills** for historical data.
+- **AI Integration**: Using LLMs (Gemini) and RAG to enhance engineering workflows.
+
+[View Week 2 Comprehensive Notes & Code](./Week2_Workflow_Orchestration/README.md)
+
+---

@@ -229,3 +229,10 @@ override.tf.json
 .terraformrc
 terraform.rc
 *.json
+
+# Week 2 Credential Helpers
+.env_encoded
+creds_base64.txt
+encode_creds.py
+fix_creds.py
+fixed_creds.txt
