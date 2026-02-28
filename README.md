@@ -33,3 +33,16 @@ This repository contains my work and notes for the DataTalksClub Data Engineerin
 [View Week 2 Comprehensive Notes & Code](./Week2_Workflow_Orchestration/README.md)
 
 ---
+
+### [Week 3: Data Warehouse & BigQuery](./Week3_Data_Warehouse_GCP/README.md)
+**Focus**: Building a modern Data Warehouse using **Google BigQuery**, optimizing for performance/cost, and running ML models with SQL.
+
+**Key Topics Covered**:
+- **Data Warehousing**: OLAP vs. OLTP, and the role of a DW in analytics.
+- **BigQuery Architecture**: Serverless design separating Compute (Dremel) from Storage (Colossus).
+- **Optimization**: Using **Partitioning** and **Clustering** to drastically reduce query costs.
+- **BigQuery ML**: Training and deploying Machine Learning models directly using SQL.
+
+[View Week 3 Comprehensive Notes & Code](./Week3_Data_Warehouse_GCP/README.md)
+
+---
